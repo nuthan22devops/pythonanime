@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: anime_store
+      POSTGRES_USER: anime
+      POSTGRES_PASSWORD: animepass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anime -d anime_store"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  anime-service:
+    build: ./services/anime-service
+    environment:
+      DATABASE_URL: postgresql://anime:animepass@postgres:5432/anime_store
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+
+  order-service:
+    build: ./services/order-service
+    environment:
+      DATABASE_URL: postgresql://anime:animepass@postgres:5432/anime_store
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8003:8000"
+
+  checkout-service:
+    build: ./services/checkout-service
+    environment:
+      ORDER_SERVICE_URL: http://order-service:8000
+    depends_on:
+      - order-service
+    ports:
+      - "8002:8000"
+
+  frontend-service:
+    build: ./services/frontend-service
+    environment:
+      ANIME_SERVICE_URL: http://anime-service:8000
+      CHECKOUT_SERVICE_URL: http://checkout-service:8000
+    depends_on:
+      - anime-service
+      - checkout-service
+    ports:
+      - "8080:8000"
+
+volumes:
+  postgres_data:
