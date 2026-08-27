@@ -1,0 +1,129 @@
+pipeline {
+        agent {
+        docker {
+            image 'python:3.12-slim'
+            reuseNode true
+        }
+    }
+
+    environment {
+        SERVICE_DIR = 'services/anime-service'
+        IMAGE_NAME = 'nuthan22/pyanimese'
+        DOCKER_CREDENTIALS = 'dockerhub-credentials'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/nuthan22devops/pythonanime.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . venv/bin/activate
+                        pip install ruff
+                        ruff check .
+                    '''
+                }
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . venv/bin/activate
+                        pytest
+                    '''
+                }
+            }
+        }
+
+        stage('Application Build') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . venv/bin/activate
+                        python -m compileall .
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build \
+                    -t ${IMAGE_NAME}:${BUILD_NUMBER} \
+                    ${SERVICE_DIR}
+                '''
+            }
+        }
+
+        stage('Docker Image Test') {
+            steps {
+                sh '''
+                    docker image inspect ${IMAGE_NAME}:${BUILD_NUMBER}
+                '''
+            }
+        }
+    }
+     stage('Docker Login') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${DOCKER_CREDENTIALS}",
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "Logging into Docker Hub..."
+
+                        echo "$DOCKER_PASSWORD" | docker login \
+                            --username "$DOCKER_USERNAME" \
+                            --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh '''
+                    echo "Pushing Docker image..."
+
+                    docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                    docker push ${DOCKER_IMAGE}:latest
+                '''
+            }
+        }
+
+
+    post {
+        success {
+            echo "Anime Service CI completed successfully"
+        }
+
+        failure {
+            echo "Anime Service CI failed"
+        }
+    }
+}
