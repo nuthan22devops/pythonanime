@@ -14,14 +14,7 @@ pipeline {
     }
 
     stages {
-
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/nuthan22devops/pythonanime.git'
-            }
-        }
-
-        stage('Install Dependencies') {
+       stage('Install Dependencies') {
             steps {
                 dir("${SERVICE_DIR}") {
                     sh '''
