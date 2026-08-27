@@ -6,15 +6,7 @@ pipeline {
             reuseNode true
         }
     }
-   parameters {
-        booleanParam(
-            name: 'RUN_TESTS',
-            defaultValue: false,
-            description: 'Run unit tests'
-        )
-    }
-
-    environment {
+     environment {
         SERVICE_DIR = 'services/anime-service'
         IMAGE_NAME = 'nuthan22/pyanimese'
         DOCKER_CREDENTIALS = 'dockerhub-credentials'
