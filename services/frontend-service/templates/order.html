@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="success">
+  <div class="check">✓</div>
+  <p class="tag">ORDER CONFIRMED</p>
+  <h1>Order placed successfully!</h1>
+  <p>Thank you, {{ order.customer_name }}. Your order has been recorded.</p>
+  <div class="order-box">
+    <div><span>Order ID</span><b>#{{ order.id }}</b></div>
+    <div><span>Item</span><b>{{ order.item_title }}</b></div>
+    <div><span>Quantity</span><b>{{ order.quantity }}</b></div>
+    <div><span>Total</span><b>₹{{ "%.2f"|format(order.total) }}</b></div>
+  </div>
+  <a class="button" href="/items">Continue Shopping</a>
+</section>
+{% endblock %}

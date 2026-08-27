@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <p class="tag">ANIME COLLECTION</p>
+  <h1>Choose your favorite</h1>
+</div>
+<div class="grid">
+{% for item in items %}
+  <article class="card">
+    <img src="{{ item.image_url }}" alt="{{ item.title }}">
+    <div class="card-body">
+      <span class="pill">{{ item.category }}</span>
+      <h2>{{ item.title }}</h2>
+      <p>{{ item.description }}</p>
+      <div class="row"><strong>₹{{ "%.2f"|format(item.price) }}</strong><a class="button small" href="/checkout/{{ item.id }}">Buy Now</a></div>
+    </div>
+  </article>
+{% endfor %}
+</div>
+{% endblock %}

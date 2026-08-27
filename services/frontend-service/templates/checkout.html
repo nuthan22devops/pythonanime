@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="checkout">
+  <div class="summary">
+    <img src="{{ item.image_url }}" alt="{{ item.title }}">
+    <span class="pill">{{ item.category }}</span>
+    <h1>{{ item.title }}</h1>
+    <p>{{ item.description }}</p>
+    <h2>₹{{ "%.2f"|format(item.price) }}</h2>
+  </div>
+  <form method="post">
+    <p class="tag">CHECKOUT</p>
+    <h1>Your details</h1>
+    <label>Name</label>
+    <input name="customer_name" placeholder="Enter your name" required>
+    <label>Phone number</label>
+    <input name="phone" type="tel" placeholder="Enter phone number" required>
+    <label>Quantity</label>
+    <input name="quantity" type="number" min="1" value="1" required>
+    <button class="button" type="submit">Place Order</button>
+  </form>
+</div>
+{% endblock %}
