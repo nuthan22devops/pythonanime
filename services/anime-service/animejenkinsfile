@@ -1,5 +1,6 @@
 pipeline {
-        agent {
+
+    agent {
         docker {
             image 'python:3.12-slim'
             reuseNode true
@@ -26,8 +27,10 @@ pipeline {
                     sh '''
                         python3 -m venv venv
                         . venv/bin/activate
+
                         pip install --upgrade pip
                         pip install -r requirements.txt
+                        pip install pytest ruff
                     '''
                 }
             }
@@ -38,7 +41,6 @@ pipeline {
                 dir("${SERVICE_DIR}") {
                     sh '''
                         . venv/bin/activate
-                        pip install ruff
                         ruff check .
                     '''
                 }
@@ -71,8 +73,12 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                    -t ${IMAGE_NAME}:${BUILD_NUMBER} \
-                    ${SERVICE_DIR}
+                        -t ${IMAGE_NAME}:${BUILD_NUMBER} \
+                        ${SERVICE_DIR}
+
+                    docker tag \
+                        ${IMAGE_NAME}:${BUILD_NUMBER} \
+                        ${IMAGE_NAME}:latest
                 '''
             }
         }
@@ -81,11 +87,12 @@ pipeline {
             steps {
                 sh '''
                     docker image inspect ${IMAGE_NAME}:${BUILD_NUMBER}
+                    docker image inspect ${IMAGE_NAME}:latest
                 '''
             }
         }
-    }
-     stage('Docker Login') {
+
+        stage('Docker Login') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -95,8 +102,6 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        echo "Logging into Docker Hub..."
-
                         echo "$DOCKER_PASSWORD" | docker login \
                             --username "$DOCKER_USERNAME" \
                             --password-stdin
@@ -108,22 +113,23 @@ pipeline {
         stage('Docker Push') {
             steps {
                 sh '''
-                    echo "Pushing Docker image..."
-
-                    docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                    docker push ${DOCKER_IMAGE}:latest
+                    docker push ${IMAGE_NAME}:${BUILD_NUMBER}
+                    docker push ${IMAGE_NAME}:latest
                 '''
             }
         }
-
+    }
 
     post {
+
         success {
             echo "Anime Service CI completed successfully"
+            echo "Image: ${IMAGE_NAME}:${BUILD_NUMBER}"
         }
 
         failure {
             echo "Anime Service CI failed"
         }
     }
+}
 }
