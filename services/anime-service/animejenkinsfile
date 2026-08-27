@@ -6,6 +6,13 @@ pipeline {
             reuseNode true
         }
     }
+   parameters {
+        booleanParam(
+            name: 'RUN_TESTS',
+            defaultValue: false,
+            description: 'Run unit tests'
+        )
+    }
      environment {
         SERVICE_DIR = 'services/anime-service'
         IMAGE_NAME = 'nuthan22/pyanimese'
@@ -28,16 +35,22 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
-            steps {
-                dir("${SERVICE_DIR}") {
-                    sh '''
-                        . venv/bin/activate
-                        pytest
-                    '''
-                }
-            }
+       stage('Unit Test') {
+    when {
+        expression {
+            params.RUN_TESTS
         }
+    }
+
+    steps {
+        dir("${SERVICE_DIR}") {
+            sh '''
+                . venv/bin/activate
+                pytest
+            '''
+        }
+    }
+}
 
         stage('Application Build') {
             steps {
