@@ -3,7 +3,7 @@ import asyncpg
 from fastapi import FastAPI, HTTPException
 
 app = FastAPI(title="Anime Catalog Service")
-DATABASE_URL = os.environ["DATABASE_URL"]
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 @app.get("/health")
 async def health():
