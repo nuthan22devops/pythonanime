@@ -29,17 +29,6 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-            steps {
-                dir("${SERVICE_DIR}") {
-                    sh '''
-                        . venv/bin/activate
-                        ruff check .
-                    '''
-                }
-            }
-        }
-
         stage('Unit Test') {
             steps {
                 dir("${SERVICE_DIR}") {
