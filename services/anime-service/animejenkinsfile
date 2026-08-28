@@ -145,65 +145,75 @@ pipeline {
             }
         }
 
-        stage('Update Kubernetes Image') {
+        stage('Update and Push Kubernetes') {
             steps {
-                sh '''
-                    echo "Updating Kubernetes deployment image..."
 
-                    sed -i \
-                        "s|image: .*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|g" \
-                        ${K8S_DEPLOYMENT}
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'githubcred',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
 
-                    echo "Updated Kubernetes deployment:"
-                    cat ${K8S_DEPLOYMENT}
-                '''
+                    sh '''
+                        echo "Cloning repository..."
+
+                        rm -rf repo
+
+                        git clone \
+                            https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git \
+                            repo
+
+                        cd repo
+
+                        echo "Updating Kubernetes image..."
+
+                        sed -i \
+                            "s|image: .*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|" \
+                            ${K8S_DEPLOYMENT}
+
+                        echo "Updated Kubernetes deployment:"
+
+                        cat ${K8S_DEPLOYMENT}
+
+                        echo "Configuring Git..."
+
+                        git config user.name "nuthan22devops"
+                        git config user.email "nuthandevops22@gmail.com"
+
+                        echo "Adding Kubernetes manifest..."
+
+                        git add ${K8S_DEPLOYMENT}
+
+                        echo "Committing changes..."
+
+                        git commit \
+                            -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
+
+                        echo "Pushing changes to GitHub..."
+
+                        git push origin main
+
+                        echo "Kubernetes manifest pushed successfully"
+                    '''
+                }
             }
         }
-
-       stage('Update and Push Kubernetes') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'githubcred',
-                usernameVariable: 'GITHUB_USERNAME',
-                passwordVariable: 'GITHUB_TOKEN'
-            )
-        ]) {
-            sh '''
-                echo "Cloning repository..."
-
-                git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git repo
-
-                cd repo
-
-                echo "Updating Kubernetes image..."
-
-                sed -i "s|image: .*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|" ${K8S_DEPLOYMENT}
-
-                echo "Configuring Git..."
-
-                git config user.name "nuthan22devops"
-                git config user.email "nuthandevops22@gmail.com"
-
-                git add ${K8S_DEPLOYMENT}
-
-                git commit -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
-
-                git push origin main
-
-                echo "Kubernetes manifest pushed successfully"
-            '''
-        }
     }
-}
+
     post {
 
         success {
-    echo "Anime Service CI/CD completed successfully"     
+            echo "========================================="
+            echo "Anime Service CI/CD completed successfully"
+            echo "========================================="
         }
 
         failure {
-               echo "Anime Service CI/CD failed"
-             } 
-}
+            echo "========================================="
+            echo "Anime Service CI/CD failed"
+            echo "========================================="
+        }
+    }
 }
