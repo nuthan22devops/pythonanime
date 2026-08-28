@@ -142,32 +142,38 @@ pipeline {
             }
         }
 
-        stage('Commit Kubernetes Manifest') {
-            steps {
-                sh '''
-                    echo "Configuring Git..."
+       stage('Commit Kubernetes Manifest') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'githubcred',
+                usernameVariable: 'GITHUB_USERNAME',
+                passwordVariable: 'GITHUB_TOKEN'
+            )
+        ]) {
+            sh '''
+                echo "Configuring Git..."
 
-                    git config user.name "nuthan22devops"
-                    git config user.email "nuthandevops22@gmail.com"
+                git init
 
-                    echo "Adding Kubernetes manifest..."
+                git config user.name "nuthan22devops"
+                git config user.email "nuthandevops22@gmail.com"
 
-                    git add ${K8S_DEPLOYMENT}
+                git remote add origin https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git
 
-                    if git diff --cached --quiet; then
-                        echo "No changes to commit."
-                    else
-                        git commit -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
+                echo "Adding Kubernetes manifest..."
 
-                        echo "Pushing Kubernetes manifest changes..."
+                git add ${K8S_DEPLOYMENT}
 
-                        git push origin HEAD:main
-                    fi
-                '''
-            }
+                git commit -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
+
+                echo "Pushing Kubernetes manifest..."
+
+                git push origin HEAD:main
+            '''
         }
     }
-
+}
     post {
 
         success {
