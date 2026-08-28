@@ -3,27 +3,29 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: animeverse
+  name: anime-service
+  namespace: anime-store
 
 spec:
-  replicas: 2
+  replicas: 1
 
   selector:
     matchLabels:
-      app: animeverse
+      app: anime-service
 
   template:
     metadata:
       labels:
-        app: animeverse
+        app: anime-service
 
     spec:
       containers:
-      - name: animeverse
+        - name: anime-service
+          image: nuthan22/pyanimese:latest
 
-        image: nuthan22/my-app:28220e0bef5ec3b1ebb39d5ecb0693f14ea1cc87
+          ports:
+            - containerPort: 8000
 
-        imagePullPolicy: Always
-
-        ports:
-        - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://anime:animepass@postgres:5432/anime_store"
