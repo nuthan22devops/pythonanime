@@ -18,6 +18,7 @@ pipeline {
         SERVICE_DIR = 'services/anime-service'
         IMAGE_NAME = 'nuthan22/pyanimese'
         DOCKER_CREDENTIALS = 'dockerhub-credentials'
+        K8S_DEPLOYMENT = 'kube8/animedep.yaml'
     }
 
     stages {
@@ -117,6 +118,44 @@ pipeline {
                 sh '''
                     docker push ${IMAGE_NAME}:${BUILD_NUMBER}
                     docker push ${IMAGE_NAME}:latest
+                '''
+            }
+        }
+    }
+     stage('Update Kubernetes Image') {
+            steps {
+                sh '''
+                    echo "Updating Kubernetes deployment image..."
+
+                    sed -i \
+                        "s|image: .*|image: ${DOCKER_IMAGE}:${BUILD_NUMBER}|g" \
+                        ${K8S_DEPLOYMENT}
+
+                    echo "Updated Kubernetes deployment:"
+                    cat ${K8S_DEPLOYMENT}
+                '''
+            }
+        }
+
+        stage('Commit Kubernetes Manifest') {
+            steps {
+                sh '''
+                    echo "Configuring Git..."
+
+                    git config user.name "nuthan22devops"
+                    git config user.email "nuthandevops22@gmail.com"
+
+                    echo "Adding Kubernetes manifest..."
+                    git add ${K8S_DEPLOYMENT}
+
+                    if git diff --cached --quiet; then
+                        echo "No changes to commit."
+                    else
+                        git commit -m "Update image to ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+
+                        echo "Pushing Kubernetes manifest changes..."
+                        git push origin HEAD:${GIT_BRANCH}
+                    fi
                 '''
             }
         }
