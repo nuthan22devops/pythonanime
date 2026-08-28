@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: frontend-service
-          image: nuthan22/pyfrontendse:latest
+          image: nuthan22/pyanifrnt:2
 
           ports:
             - containerPort: 8000
