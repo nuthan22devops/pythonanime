@@ -72,6 +72,8 @@ pipeline {
                 sh '''
                     apt-get update
                     apt-get install -y docker.io
+
+                    echo "Docker version:"
                     docker --version
                 '''
             }
@@ -80,9 +82,13 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh '''
+                    echo "Building Docker image..."
+
                     docker build \
                         -t ${IMAGE_NAME}:${BUILD_NUMBER} \
                         ${SERVICE_DIR}
+
+                    echo "Tagging image as latest..."
 
                     docker tag \
                         ${IMAGE_NAME}:${BUILD_NUMBER} \
@@ -94,8 +100,13 @@ pipeline {
         stage('Docker Image Test') {
             steps {
                 sh '''
+                    echo "Checking Docker images..."
+
                     docker image inspect ${IMAGE_NAME}:${BUILD_NUMBER}
+
                     docker image inspect ${IMAGE_NAME}:latest
+
+                    echo "Docker image validation successful"
                 '''
             }
         }
@@ -110,6 +121,8 @@ pipeline {
                     )
                 ]) {
                     sh '''
+                        echo "Logging into Docker Hub..."
+
                         echo "$DOCKER_PASSWORD" | docker login \
                             --username "$DOCKER_USERNAME" \
                             --password-stdin
@@ -121,8 +134,13 @@ pipeline {
         stage('Docker Push') {
             steps {
                 sh '''
+                    echo "Pushing Docker image..."
+
                     docker push ${IMAGE_NAME}:${BUILD_NUMBER}
+
                     docker push ${IMAGE_NAME}:latest
+
+                    echo "Docker image pushed successfully"
                 '''
             }
         }
@@ -142,47 +160,58 @@ pipeline {
             }
         }
 
-       stage('Commit Kubernetes Manifest') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'githubcred',
-                usernameVariable: 'GITHUB_USERNAME',
-                passwordVariable: 'GITHUB_TOKEN'
-            )
-        ]) {
-            sh '''
-                echo "Configuring Git..."
+        stage('Commit Kubernetes Manifest') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'githubcred',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        echo "Configuring Git..."
 
-                git init
+                        git init
 
-                git config user.name "nuthan22devops"
-                git config user.email "nuthandevops22@gmail.com"
+                        git config user.name "nuthan22devops"
+                        git config user.email "nuthandevops22@gmail.com"
 
-                git remote add origin https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git
+                        git remote remove origin 2>/dev/null || true
 
-                echo "Adding Kubernetes manifest..."
+                        git remote add origin \
+                            https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git
 
-                git add ${K8S_DEPLOYMENT}
+                        echo "Adding Kubernetes manifest..."
 
-                git commit -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
+                        git add ${K8S_DEPLOYMENT}
 
-                echo "Pushing Kubernetes manifest..."
+                        if git diff --cached --quiet; then
+                            echo "No changes to commit."
+                        else
+                            git commit \
+                                -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
 
-                git push origin HEAD:main
-            '''
+                            echo "Pushing Kubernetes manifest changes..."
+
+                            git push origin HEAD:main
+
+                            echo "Kubernetes manifest pushed successfully"
+                        fi
+                    '''
+                }
+            }
         }
     }
-}
+
     post {
 
         success {
-            echo "Anime Service CI/CD completed successfully"
-            echo "Image: ${IMAGE_NAME}:${BUILD_NUMBER}"
+    echo "Anime Service CI/CD completed successfully"     
         }
 
         failure {
-            echo "Anime Service CI/CD failed"
-        }
-    }
+               echo "Anime Service CI/CD failed"
+             } 
+}
 }
