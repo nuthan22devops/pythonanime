@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: anime-service
-          image: nuthan22/pyanimese:latest
+          image: nuthan22/pyanimese:21
 
           ports:
             - containerPort: 8000
