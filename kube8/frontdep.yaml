@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: frontend-service
+  namespace: 
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: frontend-service
+
+  template:
+    metadata:
+      labels:
+        app: frontend-service
+
+    spec:
+      containers:
+        - name: frontend-service
+          image: nuthan22/pyfrontendse:latest
+
+          ports:
+            - containerPort: 8000
+
+          env:
+            - name: ANIME_SERVICE_URL
+              value: "http://anime-service:8000"
+
+            - name: CHECKOUT_SERVICE_URL
+              value: "http://checkout-service:8000"
