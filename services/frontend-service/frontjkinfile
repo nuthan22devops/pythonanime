@@ -1,0 +1,219 @@
+pipeline {
+
+    agent {
+        docker {
+            image 'python:3.12-slim'
+            reuseNode true
+            args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
+    parameters {
+        booleanParam(
+            name: 'RUN_TESTS',
+            defaultValue: false,
+            description: 'Run unit tests'
+        )
+    }
+
+    environment {
+        SERVICE_DIR = 'services/frontend-service'
+        IMAGE_NAME = 'nuthan22/pyanifrnt'
+        DOCKER_CREDENTIALS = 'dockerhub-credentials'
+        K8S_DEPLOYMENT = 'kube8/frontdep.yaml'
+    }
+
+    stages {
+
+        stage('Install Dependencies') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        python3 -m venv venv
+                        . venv/bin/activate
+
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Unit Test') {
+            when {
+                expression {
+                    params.RUN_TESTS
+                }
+            }
+
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . venv/bin/activate
+                        pytest
+                    '''
+                }
+            }
+        }
+
+        stage('Application Build') {
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . venv/bin/activate
+                        python -m compileall .
+                    '''
+                }
+            }
+        }
+
+        stage('Install Docker CLI') {
+            steps {
+                sh '''
+                    apt-get update
+                    apt-get install -y docker.io
+
+                    echo "Docker version:"
+                    docker --version
+                '''
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    echo "Building Docker image..."
+
+                    docker build \
+                        -t ${IMAGE_NAME}:${BUILD_NUMBER} \
+                        ${SERVICE_DIR}
+
+                    echo "Tagging image as latest..."
+
+                    docker tag \
+                        ${IMAGE_NAME}:${BUILD_NUMBER} \
+                        ${IMAGE_NAME}:latest
+                '''
+            }
+        }
+
+        stage('Docker Image Test') {
+            steps {
+                sh '''
+                    echo "Checking Docker images..."
+
+                    docker image inspect ${IMAGE_NAME}:${BUILD_NUMBER}
+
+                    docker image inspect ${IMAGE_NAME}:latest
+
+                    echo "Docker image validation successful"
+                '''
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${DOCKER_CREDENTIALS}",
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "Logging into Docker Hub..."
+
+                        echo "$DOCKER_PASSWORD" | docker login \
+                            --username "$DOCKER_USERNAME" \
+                            --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh '''
+                    echo "Pushing Docker image..."
+
+                    docker push ${IMAGE_NAME}:${BUILD_NUMBER}
+
+                    docker push ${IMAGE_NAME}:latest
+
+                    echo "Docker image pushed successfully"
+                '''
+            }
+        }
+
+        stage('Update and Push Kubernetes') {
+            steps {
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'githubcred',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+
+                    sh '''
+                        echo "Cloning repository..."
+
+                        rm -rf repo
+
+                        git clone \
+                            https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git \
+                            repo
+
+                        cd repo
+
+                        echo "Updating Kubernetes image..."
+
+                        sed -i \
+                            "s|image: .*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|" \
+                            ${K8S_DEPLOYMENT}
+
+                        echo "Updated Kubernetes deployment:"
+
+                        cat ${K8S_DEPLOYMENT}
+
+                        echo "Configuring Git..."
+
+                        git config user.name "nuthan22devops"
+                        git config user.email "nuthandevops22@gmail.com"
+
+                        echo "Adding Kubernetes manifest..."
+
+                        git add ${K8S_DEPLOYMENT}
+
+                        echo "Committing changes..."
+
+                        git commit \
+                            -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
+
+                        echo "Pushing changes to GitHub..."
+
+                        git push origin main
+
+                        echo "Kubernetes manifest pushed successfully"
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo "========================================="
+            echo "Anime Service CI/CD completed successfully"
+            echo "========================================="
+        }
+
+        failure {
+            echo "========================================="
+            echo "Anime Service CI/CD failed"
+            echo "========================================="
+        }
+    }
+}
