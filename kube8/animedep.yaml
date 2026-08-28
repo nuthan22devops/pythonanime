@@ -1,1 +1,29 @@
 
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: animeverse
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: animeverse
+
+  template:
+    metadata:
+      labels:
+        app: animeverse
+
+    spec:
+      containers:
+      - name: animeverse
+
+        image: nuthan22/my-app:28220e0bef5ec3b1ebb39d5ecb0693f14ea1cc87
+
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 3000
