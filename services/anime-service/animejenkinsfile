@@ -4,17 +4,19 @@ pipeline {
         docker {
             image 'python:3.12-slim'
             reuseNode true
-           args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
+            args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
-   parameters {
+
+    parameters {
         booleanParam(
             name: 'RUN_TESTS',
             defaultValue: false,
             description: 'Run unit tests'
         )
     }
-     environment {
+
+    environment {
         SERVICE_DIR = 'services/anime-service'
         IMAGE_NAME = 'nuthan22/pyanimese'
         DOCKER_CREDENTIALS = 'dockerhub-credentials'
@@ -22,7 +24,8 @@ pipeline {
     }
 
     stages {
-       stage('Install Dependencies') {
+
+        stage('Install Dependencies') {
             steps {
                 dir("${SERVICE_DIR}") {
                     sh '''
@@ -36,22 +39,22 @@ pipeline {
             }
         }
 
-       stage('Unit Test') {
-    when {
-        expression {
-            params.RUN_TESTS
-        }
-    }
+        stage('Unit Test') {
+            when {
+                expression {
+                    params.RUN_TESTS
+                }
+            }
 
-    steps {
-        dir("${SERVICE_DIR}") {
-            sh '''
-                . venv/bin/activate
-                pytest
-            '''
+            steps {
+                dir("${SERVICE_DIR}") {
+                    sh '''
+                        . venv/bin/activate
+                        pytest
+                    '''
+                }
+            }
         }
-    }
-}
 
         stage('Application Build') {
             steps {
@@ -63,16 +66,18 @@ pipeline {
                 }
             }
         }
-     stage('Install Docker CLI') {
-    steps {
-        sh '''
-            apt-get update
-            apt-get install -y docker.io
-            docker --version
-        '''
-    }
-}
- stage('Docker Build') {
+
+        stage('Install Docker CLI') {
+            steps {
+                sh '''
+                    apt-get update
+                    apt-get install -y docker.io
+                    docker --version
+                '''
+            }
+        }
+
+        stage('Docker Build') {
             steps {
                 sh '''
                     docker build \
@@ -121,14 +126,14 @@ pipeline {
                 '''
             }
         }
-    }
-     stage('Update Kubernetes Image') {
+
+        stage('Update Kubernetes Image') {
             steps {
                 sh '''
                     echo "Updating Kubernetes deployment image..."
 
                     sed -i \
-                        "s|image: .*|image: ${DOCKER_IMAGE}:${BUILD_NUMBER}|g" \
+                        "s|image: .*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|g" \
                         ${K8S_DEPLOYMENT}
 
                     echo "Updated Kubernetes deployment:"
@@ -146,29 +151,32 @@ pipeline {
                     git config user.email "nuthandevops22@gmail.com"
 
                     echo "Adding Kubernetes manifest..."
+
                     git add ${K8S_DEPLOYMENT}
 
                     if git diff --cached --quiet; then
                         echo "No changes to commit."
                     else
-                        git commit -m "Update image to ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+                        git commit -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
 
                         echo "Pushing Kubernetes manifest changes..."
-                        git push origin HEAD:${GIT_BRANCH}
+
+                        git push origin HEAD:main
                     fi
                 '''
             }
         }
+    }
 
     post {
 
         success {
-            echo "Anime Service CI completed successfully"
+            echo "Anime Service CI/CD completed successfully"
             echo "Image: ${IMAGE_NAME}:${BUILD_NUMBER}"
         }
 
         failure {
-            echo "Anime Service CI failed"
+            echo "Anime Service CI/CD failed"
         }
     }
 }
