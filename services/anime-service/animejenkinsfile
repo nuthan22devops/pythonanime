@@ -160,48 +160,42 @@ pipeline {
             }
         }
 
-        stage('Commit Kubernetes Manifest') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'githubcred',
-                        usernameVariable: 'GITHUB_USERNAME',
-                        passwordVariable: 'GITHUB_TOKEN'
-                    )
-                ]) {
-                    sh '''
-                        echo "Configuring Git..."
+       stage('Update and Push Kubernetes') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'githubcred',
+                usernameVariable: 'GITHUB_USERNAME',
+                passwordVariable: 'GITHUB_TOKEN'
+            )
+        ]) {
+            sh '''
+                echo "Cloning repository..."
 
-                        git config user.name "nuthan22devops"
-                        git config user.email "nuthandevops22@gmail.com"
+                git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git repo
 
-                        git remote remove origin 2>/dev/null || true
+                cd repo
 
-                        git remote add origin \
-                            https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/nuthan22devops/pythonanime.git
+                echo "Updating Kubernetes image..."
 
-                        echo "Adding Kubernetes manifest..."
+                sed -i "s|image: .*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|" ${K8S_DEPLOYMENT}
 
-                        git add ${K8S_DEPLOYMENT}
+                echo "Configuring Git..."
 
-                        if git diff --cached --quiet; then
-                            echo "No changes to commit."
-                        else
-                            git commit \
-                                -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
+                git config user.name "nuthan22devops"
+                git config user.email "nuthandevops22@gmail.com"
 
-                            echo "Pushing Kubernetes manifest changes..."
+                git add ${K8S_DEPLOYMENT}
 
-                            git push origin HEAD:main
+                git commit -m "Update anime image to ${IMAGE_NAME}:${BUILD_NUMBER}"
 
-                            echo "Kubernetes manifest pushed successfully"
-                        fi
-                    '''
-                }
-            }
+                git push origin main
+
+                echo "Kubernetes manifest pushed successfully"
+            '''
         }
     }
-
+}
     post {
 
         success {
