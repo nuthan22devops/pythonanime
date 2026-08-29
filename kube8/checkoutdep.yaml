@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: checkout-service
-          image: nuthan22/pycheckoutse:latest
+          image: nuthan22/pyanicheck:8
 
           ports:
             - containerPort: 8000
