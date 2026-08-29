@@ -2,12 +2,7 @@ End to End CICD Project using Jenkins as Continous Integration & GitOPS Argocd f
 # AnimeVerse — Python Microservices Demo
 
 A simple anime shopping application built with 4 Python microservices + PostgreSQL
-Browser
-→ `frontend-service` (UI / gateway)
-→ `anime-service` (catalog)
-→ `checkout-service` (checkout)
-→ `order-service` (order persistence)
-→ PostgreSQL
+1.frontend 2.catalog 3.checkout 4.order-service 5.postgreSQL
 All these 5 microservices has been build with chatgpt
 Jenkinsfiles,Dockerfiles, and kubernetes manifest files has been devoloped using offical documentation for each microservice.
 
@@ -63,6 +58,27 @@ i have changed the application frontend-service to Loadbalancer to expose the ap
 now you can succesfully access the applications and palce an ordertoo 
 
 Automating whole CICD 
-now we can deploy the changes to the application using the automation when the change in the source code will trigger the pipeline for the Continous integration then the latest version image will be updated in the k8s file and argocd works on the git as a single source of truth it will watch the git rep path which we have provided and sync according to the changes it automatically rollout in the updtaed deployment in kubernetes cluster.
+now we are deploy the changes to the homepage interface for frontend microservice application using the CICD automation when the change in the source code will trigger Webhook which i attatched to  jenkins, then the change automatically trigger the jenkins pipeline and go through the all mentioned stages, build the application ,docker file and update the kuberneties manifest with deployed latest image as  Continous integration then the set up ARGOCD will monitor our deployment path and any changes go to it it wil pick up and trigger those in cluster , argocd works on the git as a single source of truth it will watch the git rep path which we have provided and sync according to the changes it automatically rollout in the updated deployment in kubernetes cluster.
+As we triggered the pipeline by commiting change in code source to main branch 
+<img width="1307" height="297" alt="image" src="https://github.com/user-attachments/assets/c0dca307-71f5-4a23-8a1a-92c476c97f72" />
+pipeline was succesfull and argocd will automaticaally sync the updated changes and deploy the changes to kubernetes cluster then the new pods are being deployed with latest image are running, and the  old pods are being terminated 
+<img width="866" height="372" alt="image" src="https://github.com/user-attachments/assets/891b7e45-d550-453d-98c4-d6ba3a639c68" />
+
+now when we access the application we can clearly see the latest deployed changes
+<img width="1346" height="682" alt="image" src="https://github.com/user-attachments/assets/9ed37828-7a6d-4980-9615-c8ea516d0ed7" />
+<img width="1337" height="662" alt="image" src="https://github.com/user-attachments/assets/601e07bc-4bd8-4ddf-9b07-e64778cacc32" />
+
+
+This Project helps me practical experience how to perform Continous integration through Jenkins pipeline and  Continous Deployment through Gitops via Argocd in kubernetes cluster. where in Continous Integration part i have been build pipeline for checkout SRC. building, testing application , and pushing the docker image to dockerhub and updating the latest image in the kubernetes manifest file
+
+In Continous Deployment part we have set up Argocd in kubernetes cluster and added the repo of the updated kubernetes manifest to watch and sync automatically , and deployed those changes in cluster
+
+I have also tested complete automation of the CICD by making the change in application interface for frontend and git commit main branch  which triggered the entire CICD proceess and we can see the newest version of image deployed in kubernetes cluster.
+
+
+
+
+
+
 
 
