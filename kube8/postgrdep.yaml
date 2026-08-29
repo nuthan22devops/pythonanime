@@ -3,7 +3,7 @@ kind: Deployment
 
 metadata:
   name: postgres
-  namespace: 
+  namespace:
 
 spec:
   replicas: 1
@@ -39,6 +39,14 @@ spec:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
 
+            - name: postgres-init
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
+
       volumes:
         - name: postgres-storage
           emptyDir: {}
+
+        - name: postgres-init
+          configMap:
+            name: postgres-init
