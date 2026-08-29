@@ -1,56 +1,68 @@
+End to End CICD Project using Jenkins as Continous Integration & GitOPS Argocd for Continous Deployment 
 # AnimeVerse — Python Microservices Demo
 
-A simple anime shopping application built with **4 Python microservices + PostgreSQL**.
-
-## Architecture
-
+A simple anime shopping application built with 4 Python microservices + PostgreSQL
 Browser
 → `frontend-service` (UI / gateway)
 → `anime-service` (catalog)
 → `checkout-service` (checkout)
 → `order-service` (order persistence)
 → PostgreSQL
+All these 5 microservices has been build with chatgpt
+Jenkinsfiles,Dockerfiles, and kubernetes manifest files has been devoloped using offical documentation for each microservice.
 
-### Services
+Continous integration:
+Prerequisites: EC2 instance with good memory to run the jenkins pipelines.we configured and set up the jenkins application,docker,git, jdk  for CI part in  EC2 instance.
+After setting up the jenkins we have logged &into jenkins ui, then it asks for the login adminstrative password you can follow the path it provides and retrive the passwordand paste it there and enter. <img width="601" height="242" alt="image" src="https://github.com/user-attachments/assets/bf0ff4eb-11dd-40a6-bd9b-0c7d10493ede" />
+ you will be now get the account setup where you need to configure your Username &Password to access jenkins for further usage.
+after succesfully setting up credentials ,Always start jenkins with installed suggested plugins as they are useful in most cases.
+<img width="665" height="267" alt="image" src="https://github.com/user-attachments/assets/d1f75eb6-3b41-4b3a-9cc9-5d4dcb4a6395" />
+In Homepage go to settings-->plugins-->install-->plugins** We have installed Docker pipeline plugin as we are using docker as a agent in pipeline, so that it will run the pipeline in a container type environment, and  after executing the pipeline regardless of success or failure of job, it will destroy the docker container.
 
-| Service | Port | Responsibility |
-|---|---:|---|
-| frontend-service | 8080 | Homepage, item index, checkout and order-success UI |
-| anime-service | 8001 | Anime catalog APIs |
-| checkout-service | 8002 | Calculates total and calls order service |
-| order-service | 8003 | Saves and retrieves orders |
-| PostgreSQL | 5432 | Persistent data |
+Then, go to Security-->credentials and configure your github and dockerhub credentials as the github credentials are used to checkout the repo incase if its private in our case our repo is public dockerhub credentials are used to push your dockerimage to dockerhub which will be built while executing the pipeline. Note please use the credentials id as same when declaring them in jenkins pipeline too in order to prevent failure while authenticating.
+<img width="1247" height="297" alt="image" src="https://github.com/user-attachments/assets/a1b69426-8742-4cd2-9239-256c81e93d4e" />
 
-## Run
+In Homepage go to add new item in select pipeline and give a name to it and configure the pipeline with required details , here i am going to run the pipeline from the jenkins files which i have in Git repository by providing my repository url (you bneed to provide credntials if your repo is private in my case it was public ) then the branch to fetch wheter from main or feature branches.then path of the jenkins file where it was located in repo and then save the job.
+Now run Build to trigger pipeline in my jenkins 
+I have configure four pipelines for four microservices presented.
+<img width="1340" height="550" alt="image" src="https://github.com/user-attachments/assets/7a828cfd-9bde-41c7-bb1d-6f6a548d5dc6" />
 
-Prerequisite: Docker Desktop / Docker Engine + Docker Compose.
+My jenkins pipeline have added stages to checkoutsource code, install dependencies, testing application, building of application, building dockerimage, and pushing it to dockerhub using provided docker credentials, and updating the build image into kubernetes manifest files which we used for GitOPS to Continous delivery.
+<img width="1252" height="212" alt="image" src="https://github.com/user-attachments/assets/55fc17d3-6e33-47e2-b9f0-9081ed253e85" />
+Now the new builded image has been updated in the kubernetes manifest files.
 
-```bash
-docker compose up --build
-```
+Continous Deployment: 
+prerequisites for cd: Kubernetes cluster, here im using Azure kubernetes cluster.
+configure axure cli and aks installfor kubectl on your local machine or any Virtual machine and logged into kubernetes cluster by using azure cli. in azure cli set up kubernetes cluster through 
+<img width="547" height="222" alt="image" src="https://github.com/user-attachments/assets/11b01a8f-1750-418d-9c02-6a1cec0aaeb2" />
 
-Open:
+you will be logged into yur cluster from there create a namespace with Argocd and install the argocd into that namespace.and to check argocd is installed or not ? do  kubectl get pods -n argocd to check the services use kubectl get svc -n argocd,we have patched argocd server to Loadbalancer to access through browser.so you will get the external address usingservice command you can use that address in order to access through browser.
+<img width="1161" height="422" alt="image" src="https://github.com/user-attachments/assets/fcf3f920-cfdf-43a5-8912-2be84d3cf221" />
 
-**http://localhost:8080**
+while accessing Argocd in browser you need credentials to login where 
+username: admin 
+Password: xxxxxxxxxxxxxxxxxx
+you can retrive that password with: kubectl -n argocd get secret argocd-initial-admin-secret
+-o jsonpath="{.data.password}" | base64 -d echo 
+paste the credentials you will be logged into Argocd homepage
+<img width="1335" height="687" alt="image" src="https://github.com/user-attachments/assets/6c52319c-fc0e-4744-8a1a-cbe2e0b839f0" />
 
-## Flow
+In Argocd go to settings go to the repositories added via http and provided git repo url and click on connect Note:my account has been public there was no need of credentials
+<img width="1347" height="347" alt="image" src="https://github.com/user-attachments/assets/b5ef6a03-86cf-421e-a8cf-1583cf354d86" />
 
-1. Homepage → `GET /`
-2. Anime index → `GET /items`
-3. Click **Buy Now**
-4. Checkout → enter name, phone and quantity
-5. Click **Place Order**
-6. Frontend calls checkout-service
-7. Checkout-service calculates total and calls order-service
-8. Order-service stores the order in PostgreSQL
-9. Success page displays **Order placed successfully!** and order ID
+Now go to Argocd application click on new application then provide application name, projectname, sync policy i have kept as automatic then repo url will be automaticaly visible as we have added in previous step you can select that or you can add your target repo url to deploy the application through argocd. then give the namespace where your application needed to be deployed. add path of the kubernertes manifest files which needs to deploy the application. 
+<img width="1315" height="512" alt="image" src="https://github.com/user-attachments/assets/3756e335-d0dd-4e6f-8632-dfadeff8b434" />
+Now argocd will deploy the application in your Aks cluster
+<img width="1342" height="631" alt="image" src="https://github.com/user-attachments/assets/45fb1670-9dce-43e8-ac11-c4e65c431323" />
+Now go to your kubernetes cluster and check whetehr the pods and service are running or not
+<img width="902" height="352" alt="image" src="https://github.com/user-attachments/assets/7880d036-3d1c-4bf7-a286-b0308da4d9cc" />
+i have changed the application frontend-service to Loadbalancer to expose the application throughout internet using Loadbalancer address we can access the application.with the given external address login to browser
+<img width="1331" height="708" alt="image" src="https://github.com/user-attachments/assets/441183cc-ddaa-4dc5-9cc1-553403f38a10" />
 
-## Useful API checks
+<img width="506" height="622" alt="image" src="https://github.com/user-attachments/assets/88471b36-6311-487e-9d8d-ddd642fe6dec" />
+now you can succesfully access the applications and palce an ordertoo 
 
-```bash
-curl http://localhost:8001/items
-curl http://localhost:8003/health
-curl http://localhost:8002/health
-```
+Automating whole CICD 
+now we can deploy the changes to the application using the automation when the change in the source code will trigger the pipeline for the Continous integration then the latest version image will be updated in the k8s file and argocd works on the git as a single source of truth it will watch the git rep path which we have provided and sync according to the changes it automatically rollout in the updtaed deployment in kubernetes cluster.
 
-This is intentionally simple for learning microservices, Docker Compose, REST APIs and PostgreSQL. For production, add authentication, API gateway/security, retries, service discovery, migrations, observability, secrets management and separate databases per service.
+
