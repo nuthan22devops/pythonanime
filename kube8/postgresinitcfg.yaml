@@ -1,19 +1,39 @@
 apiVersion: v1
 kind: ConfigMap
+
 metadata:
   name: postgres-init
   namespace: anime-store
+
 data:
   init.sql: |
     CREATE TABLE IF NOT EXISTS anime_items (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
+        title VARCHAR(120) NOT NULL,
         description TEXT,
-        price DECIMAL(10,2) NOT NULL
+        price NUMERIC(10,2) NOT NULL,
+        image_url TEXT,
+        category VARCHAR(80)
     );
 
-    INSERT INTO anime_items (name, description, price)
-    VALUES
-    ('Naruto', 'Naruto Uzumaki anime item', 500),
-    ('One Piece', 'One Piece anime item', 600),
-    ('Dragon Ball', 'Dragon Ball anime item', 700);
+    CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        customer_name VARCHAR(120) NOT NULL,
+        phone VARCHAR(30) NOT NULL,
+        item_id INTEGER NOT NULL,
+        item_title VARCHAR(120) NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        total NUMERIC(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    INSERT INTO anime_items (title, description, price, image_url, category)
+    SELECT * FROM (VALUES
+     ('Naruto Uzumaki', 'The energetic ninja from Konoha.', 499.00, 'https://placehold.co/600x400/17112b/ffffff?text=Naruto', 'Shonen'),
+     ('Demon Slayer', 'A sword-fighting adventure inspired by the popular anime.', 599.00, 'https://placehold.co/600x400/28152d/ffffff?text=Demon+Slayer', 'Action'),
+     ('One Piece', 'Set sail with a legendary pirate crew.', 699.00, 'https://placehold.co/600x400/102a43/ffffff?text=One+Piece', 'Adventure'),
+     ('Jujutsu Kaisen', 'Cursed energy, sorcery and supernatural battles.', 649.00, 'https://placehold.co/600x400/17202a/ffffff?text=Jujutsu+Kaisen', 'Fantasy'),
+     ('My Hero Academia', 'Young heroes training to master their quirks.', 549.00, 'https://placehold.co/600x400/19324d/ffffff?text=My+Hero', 'Superhero'),
+     ('Attack on Titan', 'Humanity fights for survival behind giant walls.', 749.00, 'https://placehold.co/600x400/302b27/ffffff?text=Attack+on+Titan', 'Dark Fantasy')
+    ) AS seed(title, description, price, image_url, category)
+    WHERE NOT EXISTS (SELECT 1 FROM anime_items);
