@@ -3,7 +3,7 @@ kind: ConfigMap
 
 metadata:
   name: postgres-init
-  namespace: anime-store
+  namespace:
 
 data:
   init.sql: |
