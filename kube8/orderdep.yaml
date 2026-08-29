@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: nuthan22/pyaniordr:2
+          image: nuthan22/pyaniordr:6
 
           ports:
             - containerPort: 8000
