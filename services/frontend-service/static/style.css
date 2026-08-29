@@ -5,8 +5,8 @@
 body {
 margin: 0;
 font-family: Inter, Arial, sans-serif;
-background: #0c0b14;
-color: #f7f5ff;
+background: #080710;
+color: white;
 }
 
 a {
@@ -36,87 +36,97 @@ color: #c8c1d6;
 }
 
 nav a:hover {
-color: #fff;
+color: white;
 }
 
 main {
-max-width: 1200px;
-margin: auto;
-padding: 55px 7%;
-}
-
-/* HERO */
-
-.hero {
-min-height: 560px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 50px;
-}
-
-.hero-content {
-flex: 1;
-}
-
-.hero h1 {
-font-size: 82px;
-line-height: 0.95;
-margin: 15px 0;
-font-weight: 900;
-letter-spacing: -3px;
-}
-
-.hero h2 {
-font-size: 34px;
-line-height: 1.2;
-margin: 20px 0;
-}
-
-.hero h2 span {
-color: #b991ff;
-}
-
-.hero p {
-color: #bdb5ca;
-font-size: 18px;
-max-width: 600px;
-line-height: 1.7;
-}
-
-.tag {
-letter-spacing: 3px;
-color: #a978ff !important;
-font-size: 12px !important;
-font-weight: 800;
-}
-
-/* CHOPPER */
-
-.hero-art {
-width: 430px;
-height: 430px;
-border: 1px solid #3a2d51;
-border-radius: 40px;
-display: flex;
-align-items: center;
-justify-content: center;
-background: radial-gradient(
-circle,
-#28163f,
-#110e1a
-);
-overflow: hidden;
-}
-
-.hero-art img {
 width: 100%;
-height: 100%;
-object-fit: contain;
-display: block;
+margin: 0;
+padding: 0;
 }
 
-/* BUTTON */
+/* =========================================
+ANIMEVERSE HERO
+========================================= */
+
+.animeverse-hero {
+position: relative;
+width: 100%;
+max-width: 1664px;
+margin: 0 auto;
+line-height: 0;
+}
+
+.animeverse-banner {
+display: block;
+width: 100%;
+height: auto;
+}
+
+/* =========================================
+REAL CLICKABLE BUTTON
+Positioned over the button in the image
+========================================= */
+
+.hero-button-link {
+position: absolute;
+
+```
+/*
+   Position of the Explore Anime button
+   inside the generated image.
+*/
+
+left: 13%;
+top: 64%;
+
+width: 25%;
+height: 9%;
+
+/*
+   Transparent because the button design
+   already exists inside the image.
+*/
+
+background: transparent;
+
+/*
+   Keep it clickable.
+*/
+
+cursor: pointer;
+
+/*
+   Remove line-height inherited from hero.
+*/
+
+line-height: normal;
+
+/*
+   Accessibility
+*/
+
+border-radius: 50px;
+```
+
+}
+
+/* Visible keyboard focus */
+
+.hero-button-link:focus-visible {
+outline: 4px solid white;
+outline-offset: 4px;
+}
+
+/* Slight hover effect */
+
+.hero-button-link:hover {
+background: rgba(255, 255, 255, 0.08);
+}
+
+/* =========================================
+EXISTING APPLICATION STYLES
+========================================= */
 
 .button {
 display: inline-block;
@@ -141,6 +151,9 @@ margin: 0;
 display: grid;
 grid-template-columns: repeat(3, 1fr);
 gap: 18px;
+max-width: 1200px;
+margin: 40px auto;
+padding: 0 30px;
 }
 
 .features > div,
@@ -172,6 +185,7 @@ font-size: 42px;
 display: grid;
 grid-template-columns: repeat(3, 1fr);
 gap: 22px;
+padding: 30px;
 }
 
 .card {
@@ -228,6 +242,7 @@ grid-template-columns: 1fr 1fr;
 gap: 25px;
 max-width: 900px;
 margin: auto;
+padding: 30px;
 }
 
 .summary img {
@@ -335,37 +350,25 @@ font-size: 13px;
 border-top: 1px solid #211d29;
 }
 
-/* MOBILE */
+/* =========================================
+MOBILE
+========================================= */
 
 @media (max-width: 800px) {
 
 ```
-.hero {
-    display: grid;
-    grid-template-columns: 1fr;
-    text-align: center;
-}
-
-.hero h1 {
-    font-size: 52px;
-}
-
-.hero h2 {
-    font-size: 28px;
-}
-
-.hero-art {
-    width: 100%;
-    max-width: 430px;
-    height: 350px;
-    margin: auto;
-}
-
-.grid {
-    grid-template-columns: 1fr;
+.hero-button-link {
+    left: 13%;
+    top: 64%;
+    width: 28%;
+    height: 9%;
 }
 
 .features {
+    grid-template-columns: 1fr;
+}
+
+.grid {
     grid-template-columns: 1fr;
 }
 
