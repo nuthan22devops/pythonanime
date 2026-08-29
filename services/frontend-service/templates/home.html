@@ -1,17 +1,65 @@
 {% extends "base.html" %}
+
 {% block content %}
+
 <section class="hero">
-  <div>
+
+```
+<div class="hero-content">
+
     <p class="tag">WELCOME TO ANIMEVERSE</p>
-    <h1>Your favorite anime.<br><span>One simple store.</span></h1>
-    <p>Browse anime collectibles, choose an item, enter your details and place an order.</p>
-    <a class="button" href="/items">Explore Anime →</a>
-  </div>
-  <div class="hero-art">⛩️<br><small>ANIME<br>ZONE</small></div>
+
+    <h1>ANIMEVERSE</h1>
+
+    <h2>
+        Your favorite anime.<br>
+        <span>One simple store.</span>
+    </h2>
+
+    <p>
+        Browse anime collectibles, choose an item,
+        enter your details and place an order.
+    </p>
+
+    <a class="button" href="/items">
+        Explore Anime →
+    </a>
+
+</div>
+
+<div class="hero-art">
+    <img
+        src="/static/images/chopper.png"
+        alt="Tony Tony Chopper"
+    >
+</div>
+```
+
 </section>
+
 <section class="features">
-  <div><b>01</b><h3>Browse</h3><p>Explore anime items.</p></div>
-  <div><b>02</b><h3>Checkout</h3><p>Enter name and phone.</p></div>
-  <div><b>03</b><h3>Order</h3><p>Get instant confirmation.</p></div>
+
+```
+<div>
+    <b>01</b>
+    <h3>Browse</h3>
+    <p>Explore anime items.</p>
+</div>
+
+<div>
+    <b>02</b>
+    <h3>Checkout</h3>
+    <p>Enter name and phone.</p>
+</div>
+
+<div>
+    <b>03</b>
+    <h3>Order</h3>
+    <p>Get instant confirmation.</p>
+</div>
+```
+
 </section>
+
 {% endblock %}
+
