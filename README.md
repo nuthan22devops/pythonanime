@@ -86,7 +86,7 @@ Now to test the alert we are delibaretly breaking a pod by deploying busybox ima
 
 As we checked we recieved alert notification via mail we configured.so the alerts are succesfully delivering when alert rules are triggered.
 <img width="911" height="547" alt="image" src="https://github.com/user-attachments/assets/ede0564e-843c-432b-b120-f7478c44a25c" />
-
+Therfore we can investigate the alert triggered reasons and act on issue earliest.
 
 
 This Project helps me practical experience how to perform Continous integration through Jenkins pipeline and  Continous Deployment through Gitops via Argocd in kubernetes cluster. where in Continous Integration part i have been build pipeline for checkout SRC. building, testing application , and pushing the docker image to dockerhub and updating the latest image in the kubernetes manifest file
