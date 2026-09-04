@@ -56,6 +56,38 @@ now you can succesfully access the applications microservices and place an order
 <img width="1346" height="682" alt="image" src="https://github.com/user-attachments/assets/9ed37828-7a6d-4980-9615-c8ea516d0ed7" />
 <img width="1337" height="662" alt="image" src="https://github.com/user-attachments/assets/601e07bc-4bd8-4ddf-9b07-e64778cacc32" />
 
+Monitoring 
+setting up monitoring for Kubernetes cluster with Azure managed Prometheus and Grafana in order to get the live updates onresource utilazation and cluster state 
+
+After application deployment setting up the monitoring with prometheus and grafana.
+In azure portal created an Azure Managed Grafana resource , in orderto access you need to set up admin permisions while creating.
+<img width="997" height="595" alt="image" src="https://github.com/user-attachments/assets/a76862c8-6fd1-434c-9c11-1a713a573437" />
+after creation of grafana resource, in the overview you will find the grafana url link used to access the grafana over internet.
+
+then agian in Azure portal go to Azure monitor workspace and create a monitor workspace, and then in access control IAM of created monitor workspace assign role as Data monitor reader and add the role to extended access in there select the previously created Grafana resource and provide access and create role.
+<img width="982" height="600" alt="image" src="https://github.com/user-attachments/assets/693cdada-750e-4bf3-b4bf-7bd3ada3728c" />
+<img width="1346" height="650" alt="image" src="https://github.com/user-attachments/assets/0b65eddb-92b9-41a7-9237-7c735213ee92" />
+
+Now we have configured the Azure monitoring workspace intigrated with Grafana, in order to get the cluster updates we need to add monitor workspace resource to prometheus metrics. 
+Go to the created cluster and under monitor sights click on prometheus metrics enable (or)  go to the monitor settings and select the created azure monitor workspace resource which intigrated to grafana and reviewand assign.
+<img width="1316" height="596" alt="image" src="https://github.com/user-attachments/assets/f91bc2f5-5e9b-4eb2-a1f1-d4d797ad2bcf" />
+after the deployment succesfull now your azure monitor workspace will get the all metrics from the kubernetes cluster where grafana used to visualize the data coming to monitor workspace.
+Now open grafana and go to data source you will be getting Azure monitor with Managed prometheus workspace.
+<img width="1351" height="496" alt="image" src="https://github.com/user-attachments/assets/31450433-c752-487b-bf68-37515b18c39a" />
+There were some default dashboard provided by Azure or set up your own.
+<img width="1275" height="570" alt="image" src="https://github.com/user-attachments/assets/9ea1c082-4461-484f-a343-bb7f01ab5d63" />
+
+Alerting:
+We need to set up the alerting rule in order to get notified when the system breaks threesholds values.for that in azure portal go to monitoring--> alerts-->prometheus rule groups -->create a alerting rules through which you will get notified email or channel then --( microsoft will verify the gmail account before setting up alerts ,after succesfully verified the account then only it triggers males on alerts)-->add alert rule through PromQL expression provide annotation with summary and description of alert and save ( i have created a alert when a pod restart more than 3 times it will trigger the alert rule and i will be notified via provided email.)
+<img width="1332" height="517" alt="image" src="https://github.com/user-attachments/assets/85372e59-d097-4c22-9ee3-d573bbb3c1b1" />
+
+Now to test the alert we are delibaretly breaking a pod by deploying busybox image where the pod will throw error and restarts  then alert is triggering or not.
+<img width="911" height="425" alt="image" src="https://github.com/user-attachments/assets/b88b8950-0e6a-4d93-b0f3-ef2d22f82440" />
+
+As we checked we recieved alert notification via mail we configured.so the alerts are succesfully delivering when alert rules are triggered.
+<img width="911" height="547" alt="image" src="https://github.com/user-attachments/assets/ede0564e-843c-432b-b120-f7478c44a25c" />
+
+
 
 This Project helps me practical experience how to perform Continous integration through Jenkins pipeline and  Continous Deployment through Gitops via Argocd in kubernetes cluster. where in Continous Integration part i have been build pipeline for checkout SRC. building, testing application , and pushing the docker image to dockerhub and updating the latest image in the kubernetes manifest file
 
